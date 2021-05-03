@@ -9,6 +9,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+var passwordCost = bcrypt.DefaultCost
+
 type AuthService struct {
 	UserRepo twitter.UserRepo
 }
@@ -42,7 +44,7 @@ func (as *AuthService) Register(ctx context.Context, input twitter.RegisterInput
 	}
 
 	// hash the password
-	hashPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	hashPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), passwordCost)
 	if err != nil {
 		return twitter.AuthResponse{}, fmt.Errorf("error hashing password: %v", err)
 	}

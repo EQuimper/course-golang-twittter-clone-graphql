@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/equimper/twitter"
+	"github.com/equimper/twitter/faker"
 	"github.com/equimper/twitter/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func TestAuthService_Register(t *testing.T) {
@@ -139,20 +139,17 @@ func TestAuthService_Login(t *testing.T) {
 	t.Run("can login", func(t *testing.T) {
 		ctx := context.Background()
 
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(validInput.Password), bcrypt.DefaultCost)
-		require.NoError(t, err)
-
 		userRepo := &mocks.UserRepo{}
 
 		userRepo.On("GetByEmail", mock.Anything, mock.Anything).
 			Return(twitter.User{
 				Email:    validInput.Email,
-				Password: string(hashedPassword),
+				Password: faker.Password,
 			}, nil)
 
 		service := NewAuthService(userRepo)
 
-		_, err = service.Login(ctx, validInput)
+		_, err := service.Login(ctx, validInput)
 		require.NoError(t, err)
 
 		userRepo.AssertExpectations(t)
@@ -161,22 +158,19 @@ func TestAuthService_Login(t *testing.T) {
 	t.Run("wrong password", func(t *testing.T) {
 		ctx := context.Background()
 
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(validInput.Password), bcrypt.DefaultCost)
-		require.NoError(t, err)
-
 		userRepo := &mocks.UserRepo{}
 
 		userRepo.On("GetByEmail", mock.Anything, mock.Anything).
 			Return(twitter.User{
 				Email:    validInput.Email,
-				Password: string(hashedPassword),
+				Password: faker.Password,
 			}, nil)
 
 		service := NewAuthService(userRepo)
 
 		validInput.Password = "somethingelse"
 
-		_, err = service.Login(ctx, validInput)
+		_, err := service.Login(ctx, validInput)
 		require.ErrorIs(t, err, twitter.ErrBadCredentials)
 
 		userRepo.AssertExpectations(t)
