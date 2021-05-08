@@ -1,7 +1,24 @@
 package main
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/equimper/twitter/config"
+	"github.com/equimper/twitter/postgres"
+)
 
 func main() {
-	fmt.Println("Hello world")
+	ctx := context.Background()
+
+	conf := config.New()
+
+	db := postgres.New(ctx, conf)
+
+	if err := db.Migrate(); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("WORKING")
 }
