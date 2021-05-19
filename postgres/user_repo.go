@@ -13,6 +13,12 @@ type UserRepo struct {
 	DB *DB
 }
 
+func NewUserRepo(db *DB) *UserRepo {
+	return &UserRepo{
+		DB: db,
+	}
+}
+
 func (ur *UserRepo) Create(ctx context.Context, user twitter.User) (twitter.User, error) {
 	tx, err := ur.DB.Pool.Begin(ctx)
 	if err != nil {
