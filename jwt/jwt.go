@@ -14,6 +14,8 @@ import (
 
 var signatureType = jwa.HS256
 
+var now = time.Now
+
 type TokenService struct {
 	Conf *config.Config
 }
@@ -102,11 +104,11 @@ func setDefaultToken(t jwtGo.Token, user twitter.User, lifetime time.Duration, c
 		return fmt.Errorf("error set jwt issuer key: %v", err)
 	}
 
-	if err := t.Set(jwtGo.IssuedAtKey, time.Now().Unix()); err != nil {
+	if err := t.Set(jwtGo.IssuedAtKey, now().Unix()); err != nil {
 		return fmt.Errorf("error set jwt issued at key: %v", err)
 	}
 
-	if err := t.Set(jwtGo.ExpirationKey, time.Now().Add(lifetime).Unix()); err != nil {
+	if err := t.Set(jwtGo.ExpirationKey, now().Add(lifetime).Unix()); err != nil {
 		return fmt.Errorf("error set jwt expired at: %v", err)
 	}
 
