@@ -43,7 +43,7 @@ func main() {
 
 	// SERVICES
 	authTokenService := jwt.NewTokenService(conf)
-	authService := domain.NewAuthService(userRepo)
+	authService := domain.NewAuthService(userRepo, authTokenService)
 
 	router.Use(authMiddleware(authTokenService))
 	router.Handle("/", playground.Handler("Twitter clone", "/query"))
