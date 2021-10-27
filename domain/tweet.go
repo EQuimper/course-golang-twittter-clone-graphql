@@ -21,12 +21,26 @@ func (ts *TweetService) All(ctx context.Context) ([]twitter.Tweet, error) {
 }
 
 func (ts *TweetService) Create(ctx context.Context, input twitter.CreateTweetInput) (twitter.Tweet, error) {
-	_, err := twitter.GetUserIDFromContext(ctx)
+	currentUserID, err := twitter.GetUserIDFromContext(ctx)
 	if err != nil {
 		return twitter.Tweet{}, twitter.ErrUnauthenticated
 	}
 
-	return twitter.Tweet{}, nil
+	input.Sanitize()
+
+	if err := input.Validate(); err != nil {
+		return twitter.Tweet{}, err
+	}
+
+	tweet, err := ts.TweetRepo.Create(ctx, twitter.Tweet{
+		Body:   input.Body,
+		UserID: currentUserID,
+	})
+	if err != nil {
+		return twitter.Tweet{}, err
+	}
+
+	return tweet, nil
 }
 
 func (ts *TweetService) GetByID(ctx context.Context, id string) (twitter.Tweet, error) {
