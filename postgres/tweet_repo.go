@@ -20,7 +20,19 @@ func NewTweetRepo(db *DB) *TweetRepo {
 }
 
 func (tr *TweetRepo) All(ctx context.Context) ([]twitter.Tweet, error) {
-	panic("not implemented") // TODO: Implement
+	return getAllTweets(ctx, tr.DB.Pool)
+}
+
+func getAllTweets(ctx context.Context, q pgxscan.Querier) ([]twitter.Tweet, error) {
+	query := `SELECT * FROM tweets ORDER BY created_at DESC;`
+
+	var tweets []twitter.Tweet
+
+	if err := pgxscan.Select(ctx, q, &tweets, query); err != nil {
+		return nil, fmt.Errorf("error get all tweets %+v", err)
+	}
+
+	return tweets, nil
 }
 
 func (tr *TweetRepo) Create(ctx context.Context, tweet twitter.Tweet) (twitter.Tweet, error) {
@@ -55,5 +67,21 @@ func createTweet(ctx context.Context, tx pgx.Tx, tweet twitter.Tweet) (twitter.T
 }
 
 func (tr *TweetRepo) GetByID(ctx context.Context, id string) (twitter.Tweet, error) {
-	panic("not implemented") // TODO: Implement
+	return getTweetByID(ctx, tr.DB.Pool, id)
+}
+
+func getTweetByID(ctx context.Context, q pgxscan.Querier, id string) (twitter.Tweet, error) {
+	query := `SELECT * FROM tweets WHERE id = $1 LIMIT 1;`
+
+	t := twitter.Tweet{}
+
+	if err := pgxscan.Get(ctx, q, &t, query, id); err != nil {
+		if pgxscan.NotFound(err) {
+			return twitter.Tweet{}, twitter.ErrNotFound
+		}
+
+		return twitter.Tweet{}, fmt.Errorf("error get tweet: %+v", err)
+	}
+
+	return t, nil
 }

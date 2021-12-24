@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/equimper/twitter"
+	"github.com/equimper/twitter/uuid"
 )
 
 type TweetService struct {
@@ -17,7 +18,7 @@ func NewTweetService(tr twitter.TweetRepo) *TweetService {
 }
 
 func (ts *TweetService) All(ctx context.Context) ([]twitter.Tweet, error) {
-	panic("not implemented") // TODO: Implement
+	return ts.TweetRepo.All(ctx)
 }
 
 func (ts *TweetService) Create(ctx context.Context, input twitter.CreateTweetInput) (twitter.Tweet, error) {
@@ -44,5 +45,9 @@ func (ts *TweetService) Create(ctx context.Context, input twitter.CreateTweetInp
 }
 
 func (ts *TweetService) GetByID(ctx context.Context, id string) (twitter.Tweet, error) {
-	panic("not implemented") // TODO: Implement
+	if !uuid.Validate(id) {
+		return twitter.Tweet{}, twitter.ErrInvalidUUID
+	}
+
+	return ts.TweetRepo.GetByID(ctx, id)
 }
