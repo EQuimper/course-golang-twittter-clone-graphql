@@ -12,7 +12,8 @@ import (
 //go:generate go run github.com/99designs/gqlgen
 
 type Resolver struct {
-	AuthService twitter.AuthService
+	AuthService  twitter.AuthService
+	TweetService twitter.TweetService
 }
 
 type queryResolver struct {
@@ -37,6 +38,16 @@ func buildBadRequestError(ctx context.Context, err error) error {
 		Path:    graphql.GetPath(ctx),
 		Extensions: map[string]interface{}{
 			"code": http.StatusBadRequest,
+		},
+	}
+}
+
+func buildUnauthenticatedError(ctx context.Context, err error) error {
+	return &gqlerror.Error{
+		Message: err.Error(),
+		Path:    graphql.GetPath(ctx),
+		Extensions: map[string]interface{}{
+			"code": http.StatusUnauthorized,
 		},
 	}
 }

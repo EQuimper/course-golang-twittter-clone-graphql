@@ -40,10 +40,12 @@ func main() {
 
 	// REPOS
 	userRepo := postgres.NewUserRepo(db)
+	tweetRepo := postgres.NewTweetRepo(db)
 
 	// SERVICES
 	authTokenService := jwt.NewTokenService(conf)
 	authService := domain.NewAuthService(userRepo, authTokenService)
+	tweetService := domain.NewTweetService(tweetRepo)
 
 	router.Use(authMiddleware(authTokenService))
 	router.Handle("/", playground.Handler("Twitter clone", "/query"))
@@ -51,7 +53,8 @@ func main() {
 		graph.NewExecutableSchema(
 			graph.Config{
 				Resolvers: &graph.Resolver{
-					AuthService: authService,
+					AuthService:  authService,
+					TweetService: tweetService,
 				},
 			},
 		),
