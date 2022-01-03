@@ -85,3 +85,31 @@ func getTweetByID(ctx context.Context, q pgxscan.Querier, id string) (twitter.Tw
 
 	return t, nil
 }
+
+func (tr *TweetRepo) Delete(ctx context.Context, id string) error {
+	tx, err := tr.DB.Pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("error starting transaction: %v", err)
+	}
+	defer tx.Rollback(ctx)
+
+	if err := deleteTweet(ctx, tx, id); err != nil {
+		return err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("error commiting: %v", err)
+	}
+
+	return nil
+}
+
+func deleteTweet(ctx context.Context, tx pgx.Tx, id string) error {
+	query := `DELETE FROM tweets WHERE id = $1;`
+
+	if _, err := tx.Exec(ctx, query, id); err != nil {
+		return fmt.Errorf("error insert: %v", err)
+	}
+
+	return nil
+}
