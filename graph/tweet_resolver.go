@@ -2,7 +2,6 @@ package graph
 
 import (
 	"context"
-	"errors"
 
 	"github.com/equimper/twitter"
 )
@@ -40,15 +39,16 @@ func (m *mutationResolver) CreateTweet(ctx context.Context, input CreateTweetInp
 		Body: input.Body,
 	})
 	if err != nil {
-		switch {
-		case errors.Is(err, twitter.ErrUnauthenticated):
-			return nil, buildUnauthenticatedError(ctx, err)
-		case errors.Is(err, twitter.ErrValidation):
-			return nil, buildBadRequestError(ctx, err)
-		default:
-			return nil, err
-		}
+		return nil, buildError(ctx, err)
 	}
 
 	return mapTweet(tweet), nil
+}
+
+func (m *mutationResolver) DeleteTweet(ctx context.Context, id string) (bool, error) {
+	if err := m.TweetService.Delete(ctx, id); err != nil {
+		return false, buildError(ctx, err)
+	}
+
+	return true, nil
 }

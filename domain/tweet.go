@@ -51,3 +51,25 @@ func (ts *TweetService) GetByID(ctx context.Context, id string) (twitter.Tweet, 
 
 	return ts.TweetRepo.GetByID(ctx, id)
 }
+
+func (ts *TweetService) Delete(ctx context.Context, id string) error {
+	currentUserID, err := twitter.GetUserIDFromContext(ctx)
+	if err != nil {
+		return twitter.ErrUnauthenticated
+	}
+
+	if !uuid.Validate(id) {
+		return twitter.ErrInvalidUUID
+	}
+
+	tweet, err := ts.TweetRepo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if !tweet.CanDelete(twitter.User{ID: currentUserID}) {
+		return twitter.ErrForbidden
+	}
+
+	return ts.TweetRepo.Delete(ctx, id)
+}
