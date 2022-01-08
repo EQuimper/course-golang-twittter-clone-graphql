@@ -10,6 +10,7 @@ type User {
 type Tweet {
   id: ID!
   body: String!
+  user: User!
   userId: ID!
   createdAt: Time!
 }

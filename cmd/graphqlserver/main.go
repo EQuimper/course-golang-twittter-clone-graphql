@@ -46,6 +46,7 @@ func main() {
 	authTokenService := jwt.NewTokenService(conf)
 	authService := domain.NewAuthService(userRepo, authTokenService)
 	tweetService := domain.NewTweetService(tweetRepo)
+	userService := domain.NewUserService(userRepo)
 
 	router.Use(authMiddleware(authTokenService))
 	router.Handle("/", playground.Handler("Twitter clone", "/query"))
@@ -55,6 +56,7 @@ func main() {
 				Resolvers: &graph.Resolver{
 					AuthService:  authService,
 					TweetService: tweetService,
+					UserService:  userService,
 				},
 			},
 		),

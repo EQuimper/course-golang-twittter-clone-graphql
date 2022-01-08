@@ -30,6 +30,7 @@ type RegisterInput struct {
 type Tweet struct {
 	ID        string    `json:"id"`
 	Body      string    `json:"body"`
+	User      *User     `json:"user"`
 	UserID    string    `json:"userId"`
 	CreatedAt time.Time `json:"createdAt"`
 }
