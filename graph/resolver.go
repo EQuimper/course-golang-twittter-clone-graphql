@@ -15,6 +15,7 @@ import (
 type Resolver struct {
 	AuthService  twitter.AuthService
 	TweetService twitter.TweetService
+	UserService  twitter.UserService
 }
 
 type queryResolver struct {
@@ -31,6 +32,14 @@ type mutationResolver struct {
 
 func (r *Resolver) Mutation() MutationResolver {
 	return &mutationResolver{r}
+}
+
+type tweetResolver struct {
+	*Resolver
+}
+
+func (r *Resolver) Tweet() TweetResolver {
+	return &tweetResolver{r}
 }
 
 func buildBadRequestError(ctx context.Context, err error) error {

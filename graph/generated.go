@@ -37,6 +37,7 @@ type Config struct {
 type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
+	Tweet() TweetResolver
 }
 
 type DirectiveRoot struct {
@@ -64,6 +65,7 @@ type ComplexityRoot struct {
 		Body      func(childComplexity int) int
 		CreatedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
+		User      func(childComplexity int) int
 		UserID    func(childComplexity int) int
 	}
 
@@ -84,6 +86,9 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Me(ctx context.Context) (*User, error)
 	Tweets(ctx context.Context) ([]*Tweet, error)
+}
+type TweetResolver interface {
+	User(ctx context.Context, obj *Tweet) (*User, error)
 }
 
 type executableSchema struct {
@@ -198,6 +203,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Tweet.ID(childComplexity), true
 
+	case "Tweet.user":
+		if e.complexity.Tweet.User == nil {
+			break
+		}
+
+		return e.complexity.Tweet.User(childComplexity), true
+
 	case "Tweet.userId":
 		if e.complexity.Tweet.UserID == nil {
 			break
@@ -309,6 +321,7 @@ type User {
 type Tweet {
   id: ID!
   body: String!
+  user: User!
   userId: ID!
   createdAt: Time!
 }
@@ -910,6 +923,41 @@ func (ec *executionContext) _Tweet_body(ctx context.Context, field graphql.Colle
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Tweet_user(ctx context.Context, field graphql.CollectedField, obj *Tweet) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Tweet",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Tweet().User(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋequimperᚋtwitterᚋgraphᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Tweet_userId(ctx context.Context, field graphql.CollectedField, obj *Tweet) (ret graphql.Marshaler) {
@@ -2456,22 +2504,36 @@ func (ec *executionContext) _Tweet(ctx context.Context, sel ast.SelectionSet, ob
 		case "id":
 			out.Values[i] = ec._Tweet_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "body":
 			out.Values[i] = ec._Tweet_body(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
+		case "user":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Tweet_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "userId":
 			out.Values[i] = ec._Tweet_userId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdAt":
 			out.Values[i] = ec._Tweet_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -2909,6 +2971,10 @@ func (ec *executionContext) marshalNTweet2ᚖgithubᚗcomᚋequimperᚋtwitter�
 		return graphql.Null
 	}
 	return ec._Tweet(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNUser2githubᚗcomᚋequimperᚋtwitterᚋgraphᚐUser(ctx context.Context, sel ast.SelectionSet, v User) graphql.Marshaler {
+	return ec._User(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋequimperᚋtwitterᚋgraphᚐUser(ctx context.Context, sel ast.SelectionSet, v *User) graphql.Marshaler {
