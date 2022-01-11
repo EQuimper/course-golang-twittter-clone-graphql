@@ -97,3 +97,19 @@ func (ur *UserRepo) GetByID(ctx context.Context, id string) (twitter.User, error
 
 	return u, nil
 }
+
+func (ur *UserRepo) GetByIds(ctx context.Context, ids []string) ([]twitter.User, error) {
+	return getUsersByIds(ctx, ur.DB.Pool, ids)
+}
+
+func getUsersByIds(ctx context.Context, q pgxscan.Querier, ids []string) ([]twitter.User, error) {
+	query := `SELECT * FROM users WHERE id = ANY($1);`
+
+	var uu []twitter.User
+
+	if err := pgxscan.Select(ctx, q, &uu, query, ids); err != nil {
+		return nil, fmt.Errorf("error get users by ids: %+v", err)
+	}
+
+	return uu, nil
+}
