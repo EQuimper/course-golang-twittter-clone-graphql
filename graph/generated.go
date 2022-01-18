@@ -50,6 +50,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		CreateReply func(childComplexity int, parentID string, input CreateTweetInput) int
 		CreateTweet func(childComplexity int, input CreateTweetInput) int
 		DeleteTweet func(childComplexity int, id string) int
 		Login       func(childComplexity int, input LoginInput) int
@@ -81,6 +82,7 @@ type MutationResolver interface {
 	Register(ctx context.Context, input RegisterInput) (*AuthResponse, error)
 	Login(ctx context.Context, input LoginInput) (*AuthResponse, error)
 	CreateTweet(ctx context.Context, input CreateTweetInput) (*Tweet, error)
+	CreateReply(ctx context.Context, parentID string, input CreateTweetInput) (*Tweet, error)
 	DeleteTweet(ctx context.Context, id string) (bool, error)
 }
 type QueryResolver interface {
@@ -119,6 +121,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AuthResponse.User(childComplexity), true
+
+	case "Mutation.createReply":
+		if e.complexity.Mutation.CreateReply == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createReply_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateReply(childComplexity, args["parentId"].(string), args["input"].(CreateTweetInput)), true
 
 	case "Mutation.createTweet":
 		if e.complexity.Mutation.CreateTweet == nil {
@@ -356,6 +370,7 @@ type Mutation {
   register(input: RegisterInput!): AuthResponse!
   login(input: LoginInput!): AuthResponse!
   createTweet(input: CreateTweetInput!): Tweet!
+  createReply(parentId: ID!, input: CreateTweetInput!): Tweet!
   deleteTweet(id: ID!): Boolean!
 }
 `, BuiltIn: false},
@@ -365,6 +380,30 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_createReply_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["parentId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parentId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["parentId"] = arg0
+	var arg1 CreateTweetInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNCreateTweetInput2githubᚗcomᚋequimperᚋtwitterᚋgraphᚐCreateTweetInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_createTweet_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -659,6 +698,48 @@ func (ec *executionContext) _Mutation_createTweet(ctx context.Context, field gra
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().CreateTweet(rctx, args["input"].(CreateTweetInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*Tweet)
+	fc.Result = res
+	return ec.marshalNTweet2ᚖgithubᚗcomᚋequimperᚋtwitterᚋgraphᚐTweet(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createReply(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createReply_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateReply(rctx, args["parentId"].(string), args["input"].(CreateTweetInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2416,6 +2497,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "createTweet":
 			out.Values[i] = ec._Mutation_createTweet(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createReply":
+			out.Values[i] = ec._Mutation_createReply(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

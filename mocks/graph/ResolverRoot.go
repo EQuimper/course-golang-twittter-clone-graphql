@@ -43,3 +43,19 @@ func (_m *ResolverRoot) Query() graph.QueryResolver {
 
 	return r0
 }
+
+// Tweet provides a mock function with given fields:
+func (_m *ResolverRoot) Tweet() graph.TweetResolver {
+	ret := _m.Called()
+
+	var r0 graph.TweetResolver
+	if rf, ok := ret.Get(0).(func() graph.TweetResolver); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(graph.TweetResolver)
+		}
+	}
+
+	return r0
+}

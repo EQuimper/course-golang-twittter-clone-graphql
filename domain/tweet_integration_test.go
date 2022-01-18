@@ -156,3 +156,54 @@ func TestIntegrationTweetService_Delete(t *testing.T) {
 		require.ErrorIs(t, err, twitter.ErrNotFound)
 	})
 }
+
+func TestIntegrationTweetService_CreateReply(t *testing.T) {
+	t.Run("not auth user cannot create a reply to a tweet", func(t *testing.T) {
+		ctx := context.Background()
+
+		_, err := tweetService.CreateReply(ctx, faker.UUID(), twitter.CreateTweetInput{
+			Body: faker.RandStr(20),
+		})
+		require.ErrorIs(t, err, twitter.ErrUnauthenticated)
+	})
+
+	t.Run("cannot create a reply to a not found tweet", func(t *testing.T) {
+		ctx := context.Background()
+
+		defer test_helpers.TeardownDB(ctx, t, db)
+
+		currentUser := test_helpers.CreateUser(ctx, t, userRepo)
+
+		ctx = test_helpers.LoginUser(ctx, t, currentUser)
+
+		_, err := tweetService.CreateReply(ctx, faker.UUID(), twitter.CreateTweetInput{
+			Body: faker.RandStr(20),
+		})
+		require.ErrorIs(t, err, twitter.ErrNotFound)
+	})
+
+	t.Run("can create a reply to a tweet", func(t *testing.T) {
+		ctx := context.Background()
+
+		defer test_helpers.TeardownDB(ctx, t, db)
+
+		currentUser := test_helpers.CreateUser(ctx, t, userRepo)
+
+		ctx = test_helpers.LoginUser(ctx, t, currentUser)
+
+		tweet := test_helpers.CreateTweet(ctx, t, tweetRepo, currentUser.ID)
+
+		input := twitter.CreateTweetInput{
+			Body: faker.RandStr(20),
+		}
+
+		reply, err := tweetService.CreateReply(ctx, tweet.ID, input)
+		require.NoError(t, err)
+
+		require.NotEmpty(t, reply.ID, "reply.ID")
+		require.Equal(t, input.Body, reply.Body, "reply.Body")
+		require.Equal(t, currentUser.ID, reply.UserID, "reply.UserID")
+		require.Equal(t, tweet.ID, *reply.ParentID, "reply.ParentID")
+		require.NotEmpty(t, reply.CreatedAt, "reply.CreatedAt")
+	})
+}
