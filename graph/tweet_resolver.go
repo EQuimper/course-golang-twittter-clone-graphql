@@ -56,3 +56,14 @@ func (m *mutationResolver) DeleteTweet(ctx context.Context, id string) (bool, er
 func (t *tweetResolver) User(ctx context.Context, obj *Tweet) (*User, error) {
 	return DataloaderFor(ctx).UserByID.Load(obj.UserID)
 }
+
+func (m *mutationResolver) CreateReply(ctx context.Context, parentID string, input CreateTweetInput) (*Tweet, error) {
+	tweet, err := m.TweetService.CreateReply(ctx, parentID, twitter.CreateTweetInput{
+		Body: input.Body,
+	})
+	if err != nil {
+		return nil, buildError(ctx, err)
+	}
+
+	return mapTweet(tweet), nil
+}

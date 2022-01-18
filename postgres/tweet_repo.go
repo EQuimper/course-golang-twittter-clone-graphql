@@ -55,11 +55,11 @@ func (tr *TweetRepo) Create(ctx context.Context, tweet twitter.Tweet) (twitter.T
 }
 
 func createTweet(ctx context.Context, tx pgx.Tx, tweet twitter.Tweet) (twitter.Tweet, error) {
-	query := `INSERT INTO tweets (body, user_id) VALUES ($1, $2) RETURNING *;`
+	query := `INSERT INTO tweets (body, user_id, parent_id) VALUES ($1, $2, $3) RETURNING *;`
 
 	t := twitter.Tweet{}
 
-	if err := pgxscan.Get(ctx, tx, &t, query, tweet.Body, tweet.UserID); err != nil {
+	if err := pgxscan.Get(ctx, tx, &t, query, tweet.Body, tweet.UserID, tweet.ParentID); err != nil {
 		return twitter.Tweet{}, fmt.Errorf("error insert: %v", err)
 	}
 

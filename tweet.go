@@ -36,6 +36,7 @@ type Tweet struct {
 	ID        string
 	Body      string
 	UserID    string
+	ParentID  *string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -47,6 +48,7 @@ func (t Tweet) CanDelete(user User) bool {
 type TweetService interface {
 	All(ctx context.Context) ([]Tweet, error)
 	Create(ctx context.Context, input CreateTweetInput) (Tweet, error)
+	CreateReply(ctx context.Context, parentID string, input CreateTweetInput) (Tweet, error)
 	GetByID(ctx context.Context, id string) (Tweet, error)
 	Delete(ctx context.Context, id string) error
 }
