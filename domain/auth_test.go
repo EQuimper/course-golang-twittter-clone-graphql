@@ -35,6 +35,7 @@ func TestAuthService_Register(t *testing.T) {
 				ID:       "123",
 				Username: validInput.Username,
 				Email:    validInput.Email,
+				Password: validInput.Password,
 			}, nil)
 
 		service := NewAuthService(userRepo)
@@ -46,6 +47,7 @@ func TestAuthService_Register(t *testing.T) {
 		require.NotEmpty(t, res.User.ID)
 		require.NotEmpty(t, res.User.Email)
 		require.NotEmpty(t, res.User.Username)
+		require.NotEmpty(t, res.User.Password)
 
 		userRepo.AssertExpectations(t)
 	})
