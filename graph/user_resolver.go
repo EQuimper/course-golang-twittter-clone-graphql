@@ -16,5 +16,12 @@ func mapUser(u twitter.User) *User {
 }
 
 func (q *queryResolver) Me(ctx context.Context) (*User, error) {
-	panic("implement me")
+	userID, err := twitter.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, twitter.ErrUnauthenticated
+	}
+
+	return mapUser(twitter.User{
+		ID: userID,
+	}), nil
 }

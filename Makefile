@@ -10,7 +10,7 @@ migrate:
 
 rollback:
 	migrate -source file://postgres/migrations \
-			-database $(DATABASE_URL) down
+			-database $(DATABASE_URL) down 1
 
 drop:
 	migrate -source file://postgres/migrations \
@@ -21,7 +21,7 @@ migration:
 		migrate create -ext sql -dir postgres/migrations $$name
 
 run:
-	go run cmd/graphqlserver/main.go
+	go run cmd/graphqlserver/*.go
 
 generate:
 	go generate ./..

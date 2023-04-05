@@ -3,6 +3,7 @@ package twitter
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"regexp"
 	"strings"
 )
@@ -17,6 +18,13 @@ var emailRegexp = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0
 type AuthService interface {
 	Register(ctx context.Context, input RegisterInput) (AuthResponse, error)
 	Login(ctx context.Context, input LoginInput) (AuthResponse, error)
+}
+
+type AuthTokenService interface {
+	CreateAccessToken(ctx context.Context, user User) (string, error)
+	CreateRefreshToken(ctx context.Context, user User, tokenID string) (string, error)
+	ParseToken(ctx context.Context, payload string) (AuthToken, error)
+	ParseTokenFromRequest(ctx context.Context, r *http.Request) (AuthToken, error)
 }
 
 type AuthToken struct {
@@ -45,7 +53,7 @@ func (in *RegisterInput) Sanitize() {
 
 func (in RegisterInput) Validate() error {
 	if len(in.Username) < UsernameMinLength {
-		return fmt.Errorf("%w: username not long enough, (%d) characters as least", ErrValidation, UsernameMinLength)
+		return fmt.Errorf("%w: username not long enough, (%d) characters at least", ErrValidation, UsernameMinLength)
 	}
 
 	if !emailRegexp.MatchString(in.Email) {
@@ -53,7 +61,7 @@ func (in RegisterInput) Validate() error {
 	}
 
 	if len(in.Password) < PasswordMinLength {
-		return fmt.Errorf("%w: password not long enough, (%d) characters as least", ErrValidation, PasswordMinLength)
+		return fmt.Errorf("%w: password not long enough, (%d) characters at least", ErrValidation, PasswordMinLength)
 	}
 
 	if in.Password != in.ConfirmPassword {

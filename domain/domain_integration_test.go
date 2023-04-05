@@ -10,15 +10,19 @@ import (
 
 	"github.com/equimper/twitter"
 	"github.com/equimper/twitter/config"
+	"github.com/equimper/twitter/jwt"
 	"github.com/equimper/twitter/postgres"
 	"golang.org/x/crypto/bcrypt"
 )
 
 var (
-	conf        *config.Config
-	db          *postgres.DB
-	authService twitter.AuthService
-	userRepo    twitter.UserRepo
+	conf             *config.Config
+	db               *postgres.DB
+	authTokenService twitter.AuthTokenService
+	authService      twitter.AuthService
+	tweetService     twitter.TweetService
+	userRepo         twitter.UserRepo
+	tweetRepo        twitter.TweetRepo
 )
 
 func TestMain(m *testing.M) {
@@ -42,8 +46,12 @@ func TestMain(m *testing.M) {
 	}
 
 	userRepo = postgres.NewUserRepo(db)
+	tweetRepo = postgres.NewTweetRepo(db)
 
-	authService = NewAuthService(userRepo)
+	authTokenService = jwt.NewTokenService(conf)
+
+	authService = NewAuthService(userRepo, authTokenService)
+	tweetService = NewTweetService(tweetRepo)
 
 	os.Exit(m.Run())
 }
