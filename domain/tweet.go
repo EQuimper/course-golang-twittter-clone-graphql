@@ -21,6 +21,10 @@ func (ts *TweetService) All(ctx context.Context) ([]twitter.Tweet, error) {
 	return ts.TweetRepo.All(ctx)
 }
 
+func (ts *TweetService) GetByParentID(ctx context.Context, id string) ([]twitter.Tweet, error) {
+	return ts.TweetRepo.GetByParentID(ctx, id)
+}
+
 func (ts *TweetService) Create(ctx context.Context, input twitter.CreateTweetInput) (twitter.Tweet, error) {
 	currentUserID, err := twitter.GetUserIDFromContext(ctx)
 	if err != nil {

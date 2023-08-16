@@ -32,6 +32,8 @@ type Tweet struct {
 	Body      string    `json:"body"`
 	User      *User     `json:"user"`
 	UserID    string    `json:"userId"`
+	ParentID  *string   `json:"parentId"`
+	Replies   []*Tweet  `json:"replies"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 

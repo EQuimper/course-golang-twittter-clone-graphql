@@ -2,7 +2,6 @@ package graph
 
 import (
 	"context"
-
 	"github.com/equimper/twitter"
 )
 
@@ -12,6 +11,7 @@ func mapTweet(t twitter.Tweet) *Tweet {
 		Body:      t.Body,
 		UserID:    t.UserID,
 		CreatedAt: t.CreatedAt,
+		ParentID:  t.ParentID,
 	}
 }
 
@@ -55,6 +55,15 @@ func (m *mutationResolver) DeleteTweet(ctx context.Context, id string) (bool, er
 
 func (t *tweetResolver) User(ctx context.Context, obj *Tweet) (*User, error) {
 	return DataloaderFor(ctx).UserByID.Load(obj.UserID)
+}
+
+func (t *tweetResolver) Replies(ctx context.Context, obj *Tweet) ([]*Tweet, error) {
+	tweets, err := t.TweetService.GetByParentID(ctx, obj.ID)
+	if err != nil {
+		return nil, buildError(ctx, err)
+	}
+
+	return mapTweets(tweets), nil
 }
 
 func (m *mutationResolver) CreateReply(ctx context.Context, parentID string, input CreateTweetInput) (*Tweet, error) {

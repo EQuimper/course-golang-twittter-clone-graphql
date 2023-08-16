@@ -50,6 +50,7 @@ type TweetService interface {
 	Create(ctx context.Context, input CreateTweetInput) (Tweet, error)
 	CreateReply(ctx context.Context, parentID string, input CreateTweetInput) (Tweet, error)
 	GetByID(ctx context.Context, id string) (Tweet, error)
+	GetByParentID(ctx context.Context, id string) ([]Tweet, error)
 	Delete(ctx context.Context, id string) error
 }
 
@@ -57,5 +58,6 @@ type TweetRepo interface {
 	All(ctx context.Context) ([]Tweet, error)
 	Create(ctx context.Context, tweet Tweet) (Tweet, error)
 	GetByID(ctx context.Context, id string) (Tweet, error)
+	GetByParentID(ctx context.Context, id string) ([]Tweet, error)
 	Delete(ctx context.Context, id string) error
 }

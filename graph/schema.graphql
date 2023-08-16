@@ -12,6 +12,8 @@ type Tweet {
   body: String!
   user: User!
   userId: ID!
+  parentId: ID
+  replies: [Tweet!]!
   createdAt: Time!
 }
 
