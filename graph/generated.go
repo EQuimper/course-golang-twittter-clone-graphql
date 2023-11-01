@@ -66,6 +66,8 @@ type ComplexityRoot struct {
 		Body      func(childComplexity int) int
 		CreatedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
+		ParentID  func(childComplexity int) int
+		Replies   func(childComplexity int) int
 		User      func(childComplexity int) int
 		UserID    func(childComplexity int) int
 	}
@@ -91,6 +93,8 @@ type QueryResolver interface {
 }
 type TweetResolver interface {
 	User(ctx context.Context, obj *Tweet) (*User, error)
+
+	Replies(ctx context.Context, obj *Tweet) ([]*Tweet, error)
 }
 
 type executableSchema struct {
@@ -217,6 +221,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Tweet.ID(childComplexity), true
 
+	case "Tweet.parentId":
+		if e.complexity.Tweet.ParentID == nil {
+			break
+		}
+
+		return e.complexity.Tweet.ParentID(childComplexity), true
+
+	case "Tweet.replies":
+		if e.complexity.Tweet.Replies == nil {
+			break
+		}
+
+		return e.complexity.Tweet.Replies(childComplexity), true
+
 	case "Tweet.user":
 		if e.complexity.Tweet.User == nil {
 			break
@@ -337,6 +355,8 @@ type Tweet {
   body: String!
   user: User!
   userId: ID!
+  parentId: ID
+  replies: [Tweet!]!
   createdAt: Time!
 }
 
@@ -1074,6 +1094,73 @@ func (ec *executionContext) _Tweet_userId(ctx context.Context, field graphql.Col
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Tweet_parentId(ctx context.Context, field graphql.CollectedField, obj *Tweet) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Tweet",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ParentID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Tweet_replies(ctx context.Context, field graphql.CollectedField, obj *Tweet) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Tweet",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Tweet().Replies(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*Tweet)
+	fc.Result = res
+	return ec.marshalNTweet2ᚕᚖgithubᚗcomᚋequimperᚋtwitterᚋgraphᚐTweetᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Tweet_createdAt(ctx context.Context, field graphql.CollectedField, obj *Tweet) (ret graphql.Marshaler) {
@@ -2616,6 +2703,22 @@ func (ec *executionContext) _Tweet(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "parentId":
+			out.Values[i] = ec._Tweet_parentId(ctx, field, obj)
+		case "replies":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Tweet_replies(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "createdAt":
 			out.Values[i] = ec._Tweet_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -3324,6 +3427,21 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return graphql.MarshalBoolean(*v)
+}
+
+func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalID(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalID(*v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

@@ -5,3 +5,5 @@ models:
     fields:
       user:
         resolver: true
+      replies:
+        resolver: true

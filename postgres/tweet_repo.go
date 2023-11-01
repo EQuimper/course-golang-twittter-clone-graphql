@@ -24,7 +24,7 @@ func (tr *TweetRepo) All(ctx context.Context) ([]twitter.Tweet, error) {
 }
 
 func getAllTweets(ctx context.Context, q pgxscan.Querier) ([]twitter.Tweet, error) {
-	query := `SELECT * FROM tweets ORDER BY created_at DESC;`
+	query := `SELECT * FROM tweets WHERE parent_id IS NULL ORDER BY created_at DESC;`
 
 	var tweets []twitter.Tweet
 
@@ -112,4 +112,20 @@ func deleteTweet(ctx context.Context, tx pgx.Tx, id string) error {
 	}
 
 	return nil
+}
+
+func (tr *TweetRepo) GetByParentID(ctx context.Context, id string) ([]twitter.Tweet, error) {
+	return getTweetsByParentID(ctx, tr.DB.Pool, id)
+}
+
+func getTweetsByParentID(ctx context.Context, q pgxscan.Querier, id string) ([]twitter.Tweet, error) {
+	query := `SELECT * FROM tweets WHERE parent_id = $1;`
+
+	var tweets []twitter.Tweet
+
+	if err := pgxscan.Select(ctx, q, &tweets, query, id); err != nil {
+		return nil, fmt.Errorf("error get all tweets by parent id %+v", err)
+	}
+
+	return tweets, nil
 }

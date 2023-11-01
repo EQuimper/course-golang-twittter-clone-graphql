@@ -13,8 +13,8 @@ require (
 	github.com/lestrrat-go/jwx v1.2.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
-	github.com/vektah/dataloaden v0.3.0 // indirect
 	github.com/vektah/gqlparser/v2 v2.1.0
 	golang.org/x/crypto v0.0.0-20210506145944-38f3c27a63bf
+	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.3.6 // indirect
 )
