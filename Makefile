@@ -22,3 +22,6 @@ run:
 
 generate: 
 	go generate ./..
+
+test:
+	go test ./... --tags="integration" -count=1 -v
