@@ -30,12 +30,13 @@ func CreateUser(ctx context.Context, t *testing.T, userRepo twitter.UserRepo) tw
 	return user
 }
 
-func CreateTweet(ctx context.Context, t *testing.T, tweetRepo twitter.TweetRepo, forUser string) twitter.Tweet {
+func CreateTweet(ctx context.Context, t *testing.T, tweetRepo twitter.TweetRepo, forUser string, parentID *string) twitter.Tweet {
 	t.Helper()
 
 	tweet, err := tweetRepo.Create(ctx, twitter.Tweet{
-		Body:   faker.RandStr(20),
-		UserID: forUser,
+		Body:     faker.RandStr(20),
+		UserID:   forUser,
+		ParentID: parentID,
 	})
 	require.NoError(t, err)
 

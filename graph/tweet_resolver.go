@@ -25,6 +25,15 @@ func mapTweets(tweets []twitter.Tweet) []*Tweet {
 	return tt
 }
 
+func (q *queryResolver) Tweet(ctx context.Context, id string) (*Tweet, error) {
+	tweet, err := q.TweetService.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapTweet(tweet), nil
+}
+
 func (q *queryResolver) Tweets(ctx context.Context) ([]*Tweet, error) {
 	tweets, err := q.TweetService.All(ctx)
 	if err != nil {

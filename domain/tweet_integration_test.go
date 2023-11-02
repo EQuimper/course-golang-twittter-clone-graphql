@@ -55,14 +55,31 @@ func TestIntegrationTweetService_All(t *testing.T) {
 
 		user := test_helpers.CreateUser(ctx, t, userRepo)
 
-		test_helpers.CreateTweet(ctx, t, tweetRepo, user.ID)
-		test_helpers.CreateTweet(ctx, t, tweetRepo, user.ID)
-		test_helpers.CreateTweet(ctx, t, tweetRepo, user.ID)
+		test_helpers.CreateTweet(ctx, t, tweetRepo, user.ID, nil)
+		test_helpers.CreateTweet(ctx, t, tweetRepo, user.ID, nil)
+		test_helpers.CreateTweet(ctx, t, tweetRepo, user.ID, nil)
 
 		tweets, err := tweetService.All(ctx)
 		require.NoError(t, err)
 
 		require.Len(t, tweets, 3)
+	})
+
+	t.Run("return all tweets without replies", func(t *testing.T) {
+		ctx := context.Background()
+
+		defer test_helpers.TeardownDB(ctx, t, db)
+
+		user := test_helpers.CreateUser(ctx, t, userRepo)
+
+		tweet := test_helpers.CreateTweet(ctx, t, tweetRepo, user.ID, nil)
+		test_helpers.CreateTweet(ctx, t, tweetRepo, user.ID, nil)
+		test_helpers.CreateTweet(ctx, t, tweetRepo, user.ID, &tweet.ID)
+
+		tweets, err := tweetService.All(ctx)
+		require.NoError(t, err)
+
+		require.Len(t, tweets, 2)
 	})
 }
 
@@ -73,7 +90,7 @@ func TestIntegrationTweetService_GetByID(t *testing.T) {
 		defer test_helpers.TeardownDB(ctx, t, db)
 
 		user := test_helpers.CreateUser(ctx, t, userRepo)
-		existingTweet := test_helpers.CreateTweet(ctx, t, tweetRepo, user.ID)
+		existingTweet := test_helpers.CreateTweet(ctx, t, tweetRepo, user.ID, nil)
 
 		tweet, err := tweetService.GetByID(ctx, existingTweet.ID)
 		require.NoError(t, err)
@@ -117,7 +134,7 @@ func TestIntegrationTweetService_Delete(t *testing.T) {
 		otherUser := test_helpers.CreateUser(ctx, t, userRepo)
 		currentUser := test_helpers.CreateUser(ctx, t, userRepo)
 
-		tweet := test_helpers.CreateTweet(ctx, t, tweetRepo, otherUser.ID)
+		tweet := test_helpers.CreateTweet(ctx, t, tweetRepo, otherUser.ID, nil)
 
 		ctx = test_helpers.LoginUser(ctx, t, currentUser)
 
@@ -140,7 +157,7 @@ func TestIntegrationTweetService_Delete(t *testing.T) {
 
 		currentUser := test_helpers.CreateUser(ctx, t, userRepo)
 
-		tweet := test_helpers.CreateTweet(ctx, t, tweetRepo, currentUser.ID)
+		tweet := test_helpers.CreateTweet(ctx, t, tweetRepo, currentUser.ID, nil)
 
 		ctx = test_helpers.LoginUser(ctx, t, currentUser)
 
@@ -191,7 +208,7 @@ func TestIntegrationTweetService_CreateReply(t *testing.T) {
 
 		ctx = test_helpers.LoginUser(ctx, t, currentUser)
 
-		tweet := test_helpers.CreateTweet(ctx, t, tweetRepo, currentUser.ID)
+		tweet := test_helpers.CreateTweet(ctx, t, tweetRepo, currentUser.ID, nil)
 
 		input := twitter.CreateTweetInput{
 			Body: faker.RandStr(20),

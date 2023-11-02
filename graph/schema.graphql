@@ -41,6 +41,7 @@ input CreateTweetInput {
 type Query {
   me: User
   tweets: [Tweet!]!
+  tweet(id: ID!): Tweet
 }
 
 type Mutation {
